@@ -1,0 +1,360 @@
+:root {
+    --primary-color: #4361ee;
+    --secondary-color: #3f37c9;
+    --accent-color: #4895ef;
+    --success-color: #4cc9f0;
+    --light-bg: #f8f9fa;
+    --text-color: #212529;
+    --border-radius: 10px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--light-bg);
+    color: var(--text-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar {
+    background-color: var(--primary-color);
+    box-shadow: var(--box-shadow);
+}
+
+.navbar-brand {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.container-main {
+    flex: 1;
+    display: flex;
+    padding: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.card-header {
+    background-color: white;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    padding: 1rem 1.5rem;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.screen {
+    display: none;
+    width: 100%;
+}
+
+.screen.active {
+    display: block;
+}
+
+/* Login Screen */
+.login-container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.login-logo {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-form {
+    margin-bottom: 1.5rem;
+}
+
+/* Patient List Screen */
+.search-container {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+}
+
+.search-input {
+    padding-left: 2.5rem;
+    border-radius: 20px;
+}
+
+.patient-list {
+    max-height: 65vh;
+    overflow-y: auto;
+}
+
+.patient-item {
+    cursor: pointer;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 0.5rem;
+    transition: all 0.2s;
+}
+
+.patient-item:hover {
+    background-color: rgba(67, 97, 238, 0.05);
+}
+
+.patient-item.selected {
+    background-color: rgba(67, 97, 238, 0.1);
+    border-left: 3px solid var(--primary-color);
+}
+
+.badge-score {
+    font-size: 0.7rem;
+    padding: 0.35em 0.65em;
+}
+
+/* New Patient Screen */
+.new-patient-form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Transition Screen */
+.transition-container {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.transition-icon {
+    font-size: 4rem;
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+}
+
+/* Chat Container */
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 75vh;
+    max-height: 800px;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.message {
+    max-width: 80%;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.message-assistant {
+    align-self: flex-start;
+}
+
+.message-patient {
+    align-self: flex-end;
+}
+
+.message-bubble {
+    padding: 1rem;
+    border-radius: 1rem;
+    position: relative;
+}
+
+.message-assistant .message-bubble {
+    background-color: #f1f3f4;
+    border-bottom-left-radius: 0.25rem;
+}
+
+.message-patient .message-bubble {
+    background-color: var(--primary-color);
+    color: white;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.message-time {
+    font-size: 0.7rem;
+    margin-top: 0.3rem;
+    text-align: right;
+    color: #6c757d;
+}
+
+.message-assistant .message-time {
+    text-align: left;
+}
+
+.response-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem;
+}
+
+.response-option {
+    flex: 1 1 45%;
+    min-width: 120px;
+    padding: 0.75rem 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    text-align: center;
+    cursor: pointer;
+    background-color: white;
+    transition: all 0.2s;
+}
+
+.response-option:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(67, 97, 238, 0.05);
+}
+
+.response-option.selected {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* Results Screen */
+.results-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.score-card {
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.score-value {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.score-max {
+    font-size: 1.5rem;
+    color: #6c757d;
+}
+
+.interpretation {
+    font-size: 1.1rem;
+    margin-top: 1rem;
+}
+
+/* Nuovi stili aggiunti per chat e notifiche */
+.chat-message {
+    max-width: 80%;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.chat-message-assistant {
+    align-self: flex-start;
+}
+
+.chat-message-user {
+    align-self: flex-end;
+    margin-left: auto;
+}
+
+.message-content {
+    padding: 1rem;
+    border-radius: 18px;
+    background-color: #f0f2f5;
+}
+
+.chat-message-assistant .message-content {
+    background-color: #f0f2f5;
+    border-bottom-left-radius: 4px;
+}
+
+.chat-message-user .message-content {
+    background-color: #4e73df;
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.error-notification, .success-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 350px;
+}
+
+/* Dashboard Screen */
+.action-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+}
+
+.action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container-main {
+        padding: 1rem;
+    }
+    
+    .message, .chat-message {
+        max-width: 85%;
+    }
+    
+    .response-option {
+        flex: 1 1 100%;
+    }
+    
+    .score-value {
+        font-size: 2.5rem;
+    }
+}

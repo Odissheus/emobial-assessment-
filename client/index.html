@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmoBial - Valutazione Assistita</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">EmoBial</a>
+            <div id="navControls" class="d-none">
+                <button id="logoutBtn" class="btn btn-sm btn-outline-light">
+                    <i class="fas fa-sign-out-alt me-1"></i>
+                    Esci
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container-main">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="screen active">
+            <div class="login-container">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="login-logo">
+                            <i class="fas fa-brain fa-3x text-primary mb-3"></i>
+                            <h2>EmoBial</h2>
+                            <p class="text-muted">Valutazione Assistita del Benessere Emotivo</p>
+                        </div>
+                        
+                        <form id="loginForm" class="login-form">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Nome utente</label>
+                                <input type="text" class="form-control" id="username" value="adminemobial" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" value="admintest" required>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-sign-in-alt me-2"></i>
+                                    Accedi
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                Versione 1.0.0 &copy; 2025 EmoBial
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+<!-- Dashboard Screen (aggiungi dopo la schermata di login) -->
+<div id="dashboardScreen" class="screen">
+    <div class="card w-100">
+        <div class="card-body text-center py-5">
+            <h3 class="mb-4">Benvenuto in EmoBial</h3>
+            <p class="mb-4">Scegli una delle seguenti opzioni:</p>
+            
+            <div class="row justify-content-center">
+                <div class="col-md-5 mb-3">
+                    <div class="card h-100 action-card">
+                        <div class="card-body p-4 text-center">
+                            <i class="fas fa-database fa-3x text-primary mb-3"></i>
+                            <h4>Database Pazienti</h4>
+                            <p>Accedi all'elenco dei pazienti per visualizzare o modificare i dati</p>
+                            <button id="accessDatabaseBtn" class="btn btn-primary mt-2">Accedi</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-5 mb-3">
+                    <div class="card h-100 action-card">
+                        <div class="card-body p-4 text-center">
+                            <i class="fas fa-clipboard-check fa-3x text-success mb-3"></i>
+                            <h4>Nuova Valutazione</h4>
+                            <p>Avvia una nuova valutazione per un paziente</p>
+                            <button id="startEvaluationBtn" class="btn btn-success mt-2">Avvia</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+        <!-- Patient List Screen -->
+        <div id="patientListScreen" class="screen">
+            <div class="card w-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Gestione Pazienti</h5>
+                    <button id="newPatientBtn" class="btn btn-primary btn-sm">
+                        <i class="fas fa-user-plus me-1"></i>
+                        Nuovo Paziente
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="form-control search-input" id="searchPatient" placeholder="Cerca paziente...">
+                    </div>
+                    
+                    <div class="patient-list" id="patientListContainer">
+                        <!-- I pazienti verranno inseriti qui dinamicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Patient Screen -->
+        <div id="newPatientScreen" class="screen">
+            <div class="card w-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Nuovo Paziente</h5>
+                </div>
+                <div class="card-body">
+                    <form id="newPatientForm" class="new-patient-form">
+                        <div class="mb-3">
+                            <label for="patientFirstName" class="form-label">Nome</label>
+                            <input type="text" class="form-control" id="patientFirstName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="patientLastName" class="form-label">Cognome</label>
+                            <input type="text" class="form-control" id="patientLastName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="patientAge" class="form-label">Età</label>
+                            <input type="number" class="form-control" id="patientAge" min="18" max="100" required>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <button type="button" id="backToListBtn" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                Indietro
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>
+                                Salva e Avvia Valutazione
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patient Detail Screen -->
+        <div id="patientDetailScreen" class="screen">
+            <div class="card w-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0" id="patientDetailName">Paziente</h5>
+                    <button id="startNewAssessmentBtn" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus-circle me-1"></i>
+                        Nuova Valutazione
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title">Dati Paziente</h6>
+                                    <p class="mb-1"><strong>Nome:</strong> <span id="detailFirstName"></span></p>
+                                    <p class="mb-1"><strong>Cognome:</strong> <span id="detailLastName"></span></p>
+                                    <p class="mb-1"><strong>Età:</strong> <span id="detailAge"></span> anni</p>
+                                    <p class="mb-0"><strong>ID:</strong> <span id="detailId"></span></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title">Valutazioni Precedenti</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Data</th>
+                                                    <th>GAD-7</th>
+                                                    <th>PHQ-9</th>
+                                                    <th>Azioni</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="assessmentHistoryTableBody">
+                                                <!-- Dati inseriti dinamicamente -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-start">
+                        <button id="backToListFromDetailBtn" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            Torna alla Lista
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transition to Patient Screen -->
+        <div id="transitionToPatientScreen" class="screen">
+            <div class="card w-100">
+                <div class="card-body">
+                    <div class="transition-container">
+                        <div class="transition-icon">
+                            <i class="fas fa-exchange-alt fa-pulse"></i>
+                        </div>
+                        <h2 class="mb-3">Consegna il dispositivo al paziente</h2>
+                        <p class="mb-4">L'assistente virtuale è pronto per guidare il paziente attraverso le scale di valutazione.</p>
+                        <button id="confirmTransitionBtn" class="btn btn-lg btn-primary">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Dispositivo consegnato al paziente
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patient Conversation Screen -->
+        <div id="conversationScreen" class="screen">
+            <div class="card w-100">
+                <div class="card-header d-flex align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="d-flex justify-content-center align-items-center me-2" style="width: 40px; height: 40px; background-color: var(--primary-color); border-radius: 50%;">
+                            <i class="fas fa-robot text-white"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Assistente EmoBial</h6>
+                            <small class="text-muted">Valutazione del benessere emotivo</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="chat-container">
+                        <div class="chat-messages" id="chatMessages">
+                            <!-- I messaggi verranno inseriti qui dinamicamente -->
+                        </div>
+                        
+                        <div id="responseOptionsContainer" class="response-options">
+                            <!-- Le opzioni di risposta verranno inserite qui dinamicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transition Back to Doctor Screen -->
+        <div id="transitionToDoctorScreen" class="screen">
+            <div class="card w-100">
+                <div class="card-body">
+                    <div class="transition-container">
+                        <div class="transition-icon">
+                            <i class="fas fa-check-circle text-success"></i>
+                        </div>
+                        <h2 class="mb-3">Valutazione Completata</h2>
+                        <p class="mb-4">Grazie per aver completato la valutazione del benessere emotivo.</p>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Ora puoi restituire il dispositivo al medico o all'infermiere.
+                        </div>
+                        <button id="returnToMedicBtn" class="btn btn-lg btn-primary">
+                            <i class="fas fa-undo me-2"></i>
+                            Dispositivo restituito al medico
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="resultsScreen" class="screen">
+            <div class="card w-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Risultati Valutazione</h5>
+                    <span class="badge bg-secondary" id="assessmentDate"></span>
+                </div>
+                <div class="card-body">
+                    <div class="results-container">
+                        <div class="alert alert-success mb-4">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Valutazione completata con successo per <strong id="resultPatientName"></strong>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <div class="card score-card">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-wind me-2 text-info"></i>
+                                        GAD-7: Ansia
+                                    </h5>
+                                    <div class="my-3">
+                                        <span class="score-value" id="gadScoreValue"></span>
+                                        <span class="score-max">/21</span>
+                                    </div>
+                                    <div class="interpretation" id="gadInterpretation">
+                                    </div>
+                                    <div class="mt-3">
+                                        <span class="badge bg-info">5-9: Ansia lieve</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card score-card">
+                                    <h5 class="card-title">
+                                        <i class="fas fa-cloud-rain me-2 text-warning"></i>
+                                        PHQ-9: Depressione
+                                    </h5>
+                                    <div class="my-3">
+                                        <span class="score-value" id="phqScoreValue"></span>
+                                        <span class="score-max">/27</span>
+                                    </div>
+                                    <div class="interpretation" id="phqInterpretation">
+                                    </div>
+                                    <div class="mt-3">
+                                        <span class="badge bg-warning text-dark">10-14: Depressione moderata</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button id="backToPatientBtn" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                Torna al Profilo Paziente
+                            </button>
+                            <button id="startNewAssessmentFromResultsBtn" class="btn btn-primary">
+                                <i class="fas fa-plus-circle me-1"></i>
+                                Nuova Valutazione
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/screens.js"></script>
+    <script src="js/conversation.js"></script>
+</body>
+</html>
