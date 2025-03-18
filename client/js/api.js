@@ -1,5 +1,5 @@
 // Configurazione di base per le chiamate API
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://emobial-assessment.onrender.com';
 
 // Funzione di aiuto per le chiamate fetch
 async function fetchWithAuth(endpoint, options = {}) {
