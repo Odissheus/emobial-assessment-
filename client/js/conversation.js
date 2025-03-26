@@ -1,9 +1,100 @@
 // Gestione della conversazione per la valutazione
 console.log('Conversation module loaded');
 
+// Gestore centralizzato per l'ID paziente
+const patientIdManager = {
+    get: function() {
+        // Recupera l'ID paziente da tutte le possibili fonti
+        let patientId = null;
+        
+        // 1. Verifica in appState.currentPatient
+        if (appState && appState.currentPatient && appState.currentPatient._id) {
+            patientId = appState.currentPatient._id;
+            console.log('[PatientID] Trovato in appState.currentPatient:', patientId);
+        }
+        // 2. Verifica in appState.conversationState
+        else if (appState && appState.conversationState && appState.conversationState.patientId) {
+            patientId = appState.conversationState.patientId;
+            console.log('[PatientID] Trovato in appState.conversationState:', patientId);
+        }
+        // 3. Verifica in localStorage
+        else if (localStorage.getItem('currentPatientId')) {
+            patientId = localStorage.getItem('currentPatientId');
+            console.log('[PatientID] Trovato in localStorage:', patientId);
+        }
+        
+        if (!patientId) {
+            console.error('[PatientID] ID paziente non trovato in nessuna fonte!');
+        }
+        
+        return patientId;
+    },
+    
+    set: function(patientId) {
+        if (!patientId) {
+            console.error('[PatientID] Tentativo di salvare un ID paziente nullo o vuoto');
+            return;
+        }
+        
+        // Salva l'ID paziente in tutte le posizioni rilevanti
+        console.log('[PatientID] Salvataggio ID paziente:', patientId);
+        
+        // 1. Salva in localStorage
+        localStorage.setItem('currentPatientId', patientId);
+        
+        // 2. Salva in appState.currentPatient se esiste
+        if (appState && appState.currentPatient) {
+            appState.currentPatient._id = patientId;
+        }
+        
+        // 3. Salva in appState.conversationState se esiste
+        if (appState && appState.conversationState) {
+            appState.conversationState.patientId = patientId;
+        }
+    },
+    
+    ensureValid: async function() {
+        // Assicura che ci sia un ID paziente valido, creandone uno se necessario
+        let patientId = this.get();
+        
+        if (!patientId) {
+            console.warn('[PatientID] Nessun ID paziente trovato, creazione di un paziente demo...');
+            
+            try {
+                // Crea un paziente demo
+                const patientData = {
+                    firstName: 'Paziente',
+                    lastName: 'Demo',
+                    age: 40
+                };
+                
+                const newPatient = await patientsAPI.create(patientData);
+                patientId = newPatient._id;
+                
+                console.log('[PatientID] Paziente demo creato con ID:', patientId);
+                this.set(patientId);
+            } catch (error) {
+                console.error('[PatientID] Errore nella creazione del paziente demo:', error);
+                
+                // Usa un ID fittizio come ultima risorsa
+                patientId = `demo-patient-${Date.now()}`;
+                this.set(patientId);
+            }
+        }
+        
+        return patientId;
+    }
+};
+
+// Rendi disponibile globalmente
+window.patientIdManager = patientIdManager;
+
 // Inizializza la conversazione con l'assistente virtuale
 async function initializeConversation() {
     try {
+        // Assicurati di avere un ID paziente valido
+        const patientId = await patientIdManager.ensureValid();
+        
         console.log('Inizializzazione conversazione', appState.currentPatient);
 
         // Verifica che ci sia un paziente corrente
@@ -24,9 +115,11 @@ async function initializeConversation() {
 
         try {
             // Avvia la conversazione tramite l'API
-            const conversationResponse = await conversationAPI.start(
-                `${appState.currentPatient.firstName} ${appState.currentPatient.lastName}`
-            );
+const conversationResponse = await conversationAPI.start({
+    patientName: `${appState.currentPatient.firstName} ${appState.currentPatient.lastName}`,
+    patientAge: appState.currentPatient.age || 0,
+    patientId: appState.currentPatient._id
+});
 
             console.log('Risposta conversazione:', conversationResponse);
 
@@ -62,7 +155,8 @@ async function initializeConversation() {
                 scores: {
                     'GAD-7': Array(7).fill(null),
                     'PHQ-9': Array(9).fill(null)
-                }
+                },
+                patientId: patientId // Aggiungi l'ID paziente
             };
         }
 
@@ -108,6 +202,19 @@ function demoConversation() {
             'PHQ-9': Array(9).fill(null)
         }
     };
+    
+    // Aggiungi l'ID del paziente allo stato della conversazione usando il gestore
+    const patientId = patientIdManager.get();
+    if (patientId) {
+        appState.conversationState.patientId = patientId;
+        console.log('ID paziente aggiunto a conversationState (demo):', patientId);
+    } else {
+        // Crea un ID paziente valido se necessario
+        patientIdManager.ensureValid().then(id => {
+            appState.conversationState.patientId = id;
+            console.log('Nuovo ID paziente creato e aggiunto a conversationState (demo):', id);
+        });
+    }
     
     // Prepara le opzioni di risposta
     renderResponseOptions([
@@ -221,6 +328,12 @@ async function handleUserResponse(selectedOption) {
             document.getElementById('responseOptionsContainer').innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>';
             
             try {
+                // Assicurati che l'ID del paziente sia nello stato della conversazione
+                const patientId = patientIdManager.get();
+                if (patientId && appState.conversationState) {
+                    appState.conversationState.patientId = patientId;
+                }
+                
                 const nextQuestionResponse = await conversationAPI.getNextQuestion(
                     appState.conversationState
                 );
@@ -229,6 +342,11 @@ async function handleUserResponse(selectedOption) {
 
                 // Aggiorna lo stato della conversazione
                 appState.conversationState = nextQuestionResponse.conversationState;
+                
+                // Assicurati che l'ID del paziente sia mantenuto
+                if (patientId) {
+                    appState.conversationState.patientId = patientId;
+                }
 
                 // Semplifica la domanda per rimuovere frasi rassicuranti
                 const questionText = simplifyQuestion(nextQuestionResponse.message);
@@ -269,6 +387,12 @@ async function handleUserResponse(selectedOption) {
         document.getElementById('responseOptionsContainer').innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>';
 
         try {
+            // Assicurati che l'ID del paziente sia nello stato della conversazione
+            const patientId = patientIdManager.get();
+            if (patientId && appState.conversationState) {
+                appState.conversationState.patientId = patientId;
+            }
+            
             // Invia la risposta al backend
             const processResponse = await conversationAPI.processResponse(
                 appState.conversationState, 
@@ -280,6 +404,11 @@ async function handleUserResponse(selectedOption) {
 
             // Aggiorna lo stato della conversazione
             appState.conversationState = processResponse.conversationState;
+            
+            // Assicurati che l'ID del paziente sia mantenuto
+            if (patientId) {
+                appState.conversationState.patientId = patientId;
+            }
 
             // Aggiungi sempre la risposta standard
             addChatMessage('assistant', 'Grazie per la tua risposta, passiamo ora alla domanda successiva.');
@@ -287,20 +416,36 @@ async function handleUserResponse(selectedOption) {
             // Controlla se ci sono risultati finali
             if (processResponse.results) {
                 console.log('Risultati finali:', processResponse.results);
-
+                console.log('appState completo:', appState);
+                console.log('currentPatient disponibile:', appState && appState.currentPatient ? 'SÌ' : 'NO');
+                
                 // Salva i risultati nell'app state
                 appState.currentAssessment = processResponse.results;
-
-                // Mostra la schermata di transizione dopo una pausa
-                setTimeout(() => {
-                    screenManager.show('transitionToDoctorScreen');
-                }, 1500);
                 
-                return;
+                // Verifica e recupera l'ID paziente usando il gestore centralizzato
+                const patientId = await patientIdManager.ensureValid();
+                
+                // Se abbiamo trovato un ID paziente, procedi con il salvataggio
+                if (patientId) {
+                    await saveAssessment(patientId);
+                } else {
+                    // Se non abbiamo trovato un ID, mostra comunque la schermata di transizione
+                    setTimeout(() => {
+                        screenManager.show('transitionToDoctorScreen');
+                    }, 1500);
+                }
+                
+                return; // Esci dalla funzione
             }
 
-            // Ottieni la prossima domanda
+            // Se non sono risultati finali, ottieni la prossima domanda
             try {
+                // Assicurati che l'ID del paziente sia nello stato della conversazione
+                const patientId = patientIdManager.get();
+                if (patientId && appState.conversationState) {
+                    appState.conversationState.patientId = patientId;
+                }
+                
                 const nextQuestionResponse = await conversationAPI.getNextQuestion(
                     appState.conversationState
                 );
@@ -309,6 +454,11 @@ async function handleUserResponse(selectedOption) {
 
                 // Aggiorna lo stato della conversazione
                 appState.conversationState = nextQuestionResponse.conversationState;
+                
+                // Assicurati che l'ID del paziente sia mantenuto
+                if (patientId) {
+                    appState.conversationState.patientId = patientId;
+                }
 
                 // Semplifica la domanda per rimuovere frasi rassicuranti
                 const questionText = simplifyQuestion(nextQuestionResponse.message);
@@ -355,10 +505,9 @@ async function handleUserResponse(selectedOption) {
                             phqResponses: appState.conversationState.scores['PHQ-9']
                         };
                         
-                        // Mostra la schermata di transizione
-                        setTimeout(() => {
-                            screenManager.show('transitionToDoctorScreen');
-                        }, 1500);
+                        // Salva i risultati usando il gestore ID paziente
+                        const patientId = await patientIdManager.ensureValid();
+                        await saveAssessment(patientId);
                         
                         return;
                     }
@@ -419,10 +568,9 @@ async function handleUserResponse(selectedOption) {
                         phqResponses: appState.conversationState.scores['PHQ-9']
                     };
                     
-                    // Mostra la schermata di transizione
-                    setTimeout(() => {
-                        screenManager.show('transitionToDoctorScreen');
-                    }, 1500);
+                    // Salva i risultati usando il gestore ID paziente
+                    const patientId = await patientIdManager.ensureValid();
+                    await saveAssessment(patientId);
                     
                     return;
                 }
@@ -476,10 +624,16 @@ async function handleUserResponse(selectedOption) {
                     phqResponses: appState.conversationState.scores['PHQ-9']
                 };
                 
-                // Mostra la schermata di transizione
-                setTimeout(() => {
-                    screenManager.show('transitionToDoctorScreen');
-                }, 1500);
+                // Salva i risultati
+                try {
+                    const patientId = await patientIdManager.ensureValid();
+                    await saveAssessment(patientId);
+                } catch (saveError) {
+                    console.error('Errore nel salvataggio dei risultati:', saveError);
+                    setTimeout(() => {
+                        screenManager.show('transitionToDoctorScreen');
+                    }, 1500);
+                }
                 
                 return;
             }
@@ -499,6 +653,244 @@ async function handleUserResponse(selectedOption) {
                 { text: 'Quasi ogni giorno (3)', questionId: fallbackQuestion.questionId, score: 3 }
             ]);
         }, 500);
+    }
+}
+
+// Funzione migliorata per salvare la valutazione
+async function saveAssessment(patientId) {
+    try {
+        console.log('[SaveAssessment] Inizio processo di salvataggio valutazione');
+        
+        // Verifica che abbiamo un ID paziente valido
+        if (!patientId) {
+            console.warn('[SaveAssessment] ID paziente non fornito, tentativo di recupero...');
+            patientId = await patientIdManager.ensureValid();
+        }
+        
+        console.log('[SaveAssessment] Utilizzo ID paziente:', patientId);
+        
+        // Verifica che abbiamo dati di valutazione
+        if (!appState.currentAssessment) {
+            console.error('[SaveAssessment] Dati di valutazione mancanti in appState.currentAssessment');
+            
+            // Crea dati di valutazione se mancanti
+            const gadResponses = appState.conversationState?.scores?.['GAD-7'] || Array(7).fill(0);
+            const phqResponses = appState.conversationState?.scores?.['PHQ-9'] || Array(9).fill(0);
+            
+            const gadTotal = gadResponses.reduce((a, b) => a + (b || 0), 0);
+            const phqTotal = phqResponses.reduce((a, b) => a + (b || 0), 0);
+            
+            appState.currentAssessment = {
+                gadScore: gadTotal,
+                phqScore: phqTotal,
+                gadResponses: gadResponses,
+                phqResponses: phqResponses,
+                date: new Date().toISOString()
+            };
+            
+            console.log('[SaveAssessment] Creati dati di valutazione:', appState.currentAssessment);
+        }
+        
+        // Crea l'oggetto di valutazione completo
+        const assessmentData = {
+            patientId: patientId,
+            gadScore: appState.currentAssessment.gadScore,
+            phqScore: appState.currentAssessment.phqScore,
+            gadResponses: appState.currentAssessment.gadResponses,
+            phqResponses: appState.currentAssessment.phqResponses,
+            date: appState.currentAssessment.date || new Date().toISOString()
+        };
+        
+        console.log('[SaveAssessment] Dati valutazione preparati:', assessmentData);
+        
+        // Verifica che tutti i campi obbligatori siano presenti
+        const requiredFields = ['patientId', 'gadScore', 'phqScore', 'gadResponses', 'phqResponses'];
+        const missingFields = requiredFields.filter(field => {
+            if (field === 'gadResponses' || field === 'phqResponses') {
+                return !assessmentData[field] || !Array.isArray(assessmentData[field]);
+            }
+            return !assessmentData[field] && assessmentData[field] !== 0;
+        });
+        
+        if (missingFields.length > 0) {
+            console.error(`[SaveAssessment] Campi obbligatori mancanti: ${missingFields.join(', ')}`);
+            
+            // Correggi i campi mancanti se possibile
+            if (missingFields.includes('gadResponses') && !Array.isArray(assessmentData.gadResponses)) {
+                assessmentData.gadResponses = Array(7).fill(1);
+            }
+            if (missingFields.includes('phqResponses') && !Array.isArray(assessmentData.phqResponses)) {
+                assessmentData.phqResponses = Array(9).fill(1);
+            }
+        }
+        
+        // Assicurati che i campi di score siano numeri
+        if (typeof assessmentData.gadScore !== 'number') {
+            assessmentData.gadScore = parseInt(assessmentData.gadScore) || 0;
+        }
+        if (typeof assessmentData.phqScore !== 'number') {
+            assessmentData.phqScore = parseInt(assessmentData.phqScore) || 0;
+        }
+        
+        console.log('[SaveAssessment] Inizio salvataggio valutazione nel database...');
+        
+        try {
+            // Salva nel database
+            const result = await assessmentsAPI.create(assessmentData);
+            console.log('[SaveAssessment] Valutazione salvata con successo:', result);
+            
+            // Salva l'ID della valutazione in localStorage per riferimento futuro
+            if (result && result._id) {
+                localStorage.setItem('lastAssessmentId', result._id);
+            }
+            
+            // Visualizza i dati nella schermata risultati
+            try {
+                populateResultsScreen(assessmentData);
+            } catch (displayError) {
+                console.error('[SaveAssessment] Errore nella visualizzazione dei risultati:', displayError);
+            }
+            
+            // Mostra la schermata di transizione
+            setTimeout(() => {
+                console.log('[SaveAssessment] Transizione a schermata finale');
+                screenManager.show('transitionToDoctorScreen');
+            }, 1500);
+            
+            return true;
+        } catch (error) {
+            console.error('[SaveAssessment] Errore nel salvataggio della valutazione:', error);
+            
+            // Mostra comunque i risultati anche in caso di errore
+            try {
+                populateResultsScreen(assessmentData);
+            } catch (displayError) {
+                console.error('[SaveAssessment] Errore nella visualizzazione dei risultati dopo errore di salvataggio:', displayError);
+            }
+            
+            // Mostra comunque la schermata di transizione
+            setTimeout(() => {
+                console.log('[SaveAssessment] Transizione a schermata finale (dopo errore)');
+                screenManager.show('transitionToDoctorScreen');
+            }, 1500);
+            
+            return false;
+        }
+    } catch (saveError) {
+        console.error('[SaveAssessment] Errore generale nel processo di salvataggio:', saveError);
+        
+        // Mostra comunque la schermata di transizione
+        setTimeout(() => {
+            console.log('[SaveAssessment] Transizione a schermata finale (dopo errore generale)');
+            screenManager.show('transitionToDoctorScreen');
+        }, 1500);
+        
+        return false;
+    }
+}
+
+// Funzione per popolare la schermata dei risultati
+function populateResultsScreen(assessmentData) {
+    console.log('[PopulateResults] Popolamento schermata risultati con:', assessmentData);
+    
+    // Assicurati che gli elementi esistano prima di tentare di modificarli
+    const gadScoreElement = document.getElementById('gadScoreValue');
+    const phqScoreElement = document.getElementById('phqScoreValue');
+    const gadInterpElement = document.getElementById('gadInterpretation');
+    const phqInterpElement = document.getElementById('phqInterpretation');
+    const patientNameElement = document.getElementById('resultPatientName');
+    
+    // Imposta i punteggi GAD e PHQ
+    if (gadScoreElement) {
+        gadScoreElement.textContent = assessmentData.gadScore;
+    } else {
+        console.error('[PopulateResults] Elemento gadScoreValue non trovato');
+    }
+    
+    if (phqScoreElement) {
+        phqScoreElement.textContent = assessmentData.phqScore;
+    } else {
+        console.error('[PopulateResults] Elemento phqScoreValue non trovato');
+    }
+    
+    // Imposta le interpretazioni
+    if (gadInterpElement) {
+        const gadInterpretation = getGADInterpretation(assessmentData.gadScore);
+        gadInterpElement.textContent = gadInterpretation;
+        
+        // Imposta classe colore in base alla severità
+        gadInterpElement.className = '';
+        if (assessmentData.gadScore >= 15) {
+            gadInterpElement.classList.add('text-danger');
+        } else if (assessmentData.gadScore >= 10) {
+            gadInterpElement.classList.add('text-warning');
+        } else if (assessmentData.gadScore >= 5) {
+            gadInterpElement.classList.add('text-primary');
+        } else {
+            gadInterpElement.classList.add('text-success');
+        }
+    } else {
+        console.error('[PopulateResults] Elemento gadInterpretation non trovato');
+    }
+    
+    if (phqInterpElement) {
+        const phqInterpretation = getPHQInterpretation(assessmentData.phqScore);
+        phqInterpElement.textContent = phqInterpretation;
+        
+        // Imposta classe colore in base alla severità
+        phqInterpElement.className = '';
+        if (assessmentData.phqScore >= 20) {
+            phqInterpElement.classList.add('text-danger');
+        } else if (assessmentData.phqScore >= 15) {
+            phqInterpElement.classList.add('text-warning');
+        } else if (assessmentData.phqScore >= 5) {
+            phqInterpElement.classList.add('text-primary');
+        } else {
+            phqInterpElement.classList.add('text-success');
+        }
+    } else {
+        console.error('[PopulateResults] Elemento phqInterpretation non trovato');
+    }
+    
+    // Imposta il nome del paziente
+    if (patientNameElement) {
+        let patientName = "Paziente";
+        
+        // Tenta di recuperare il nome del paziente
+        if (appState && appState.currentPatient) {
+            patientName = `${appState.currentPatient.firstName} ${appState.currentPatient.lastName}`;
+        }
+        
+        patientNameElement.textContent = patientName;
+    } else {
+        console.error('[PopulateResults] Elemento resultPatientName non trovato');
+    }
+}
+
+// Funzioni di interpretazione dei punteggi
+function getGADInterpretation(score) {
+    if (score >= 15) {
+        return "Ansia severa";
+    } else if (score >= 10) {
+        return "Ansia moderata";
+    } else if (score >= 5) {
+        return "Ansia lieve";
+    } else {
+        return "Ansia minima";
+    }
+}
+
+function getPHQInterpretation(score) {
+    if (score >= 20) {
+        return "Depressione severa";
+    } else if (score >= 15) {
+        return "Depressione moderatamente severa";
+    } else if (score >= 10) {
+        return "Depressione moderata";
+    } else if (score >= 5) {
+        return "Depressione lieve";
+    } else {
+        return "Depressione minima";
     }
 }
 
