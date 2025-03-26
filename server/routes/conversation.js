@@ -6,12 +6,12 @@ const llmService = require('../services/llm-service');
 // Start a new conversation
 router.post('/start', async (req, res) => {
   try {
-    const { patientName } = req.body;
+    const { patientName, patientAge } = req.body;
     if (!patientName) {
       return res.status(400).json({ message: 'Patient name is required' });
     }
     
-    const result = await llmService.startConversation(patientName);
+    const result = await llmService.startConversation({ patientName, patientAge });
     res.json(result);
   } catch (error) {
     console.error('Error starting conversation:', error);

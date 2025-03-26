@@ -1,3 +1,4 @@
+@"
 # Dipendenze
 node_modules/
 
@@ -24,3 +25,4 @@ yarn-error.log*
 # Sistema operativo
 .DS_Store
 Thumbs.db
+"@ | Out-File -FilePath .gitignore -Encoding utf8
