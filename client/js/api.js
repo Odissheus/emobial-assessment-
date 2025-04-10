@@ -5,9 +5,6 @@ const API_URL = window.location.hostname === 'localhost'
 
 // Funzione di aiuto per le chiamate fetch
 async function fetchWithAuth(endpoint, options = {}) {
-  // ... resto del codice ...
-// Funzione di aiuto per le chiamate fetch
-async function fetchWithAuth(endpoint, options = {}) {
     // In un'app reale, includeremmo un token di autenticazione
     const defaultOptions = {
         headers: {
@@ -615,4 +612,4 @@ ensureValidPatient()
         console.error('[API] Errore durante la validazione del paziente:', error);
         // Mostra un messaggio di errore all'utente
         alert('Si è verificato un errore durante la validazione del paziente. Riprova più tardi.');
-    })};
+    });
