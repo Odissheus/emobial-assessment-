@@ -1,29 +1,11 @@
-// Configurazione di base per le chiamate API - MODIFICATO PER TEST LOCALI
-// CORS configurazione ottimizzata
-app.use((req, res, next) => {
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:5000',
-      'https://emobial.netlify.app', // assumo questo sia l'URL del tuo frontend su Netlify
-      'https://emobial-assessment.onrender.com'
-    ];
-    
-    const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin)) {
-      res.header('Access-Control-Allow-Origin', origin);
-    }
-    
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    
-    if (req.method === 'OPTIONS') {
-      return res.sendStatus(200);
-    }
-    
-    next();
-  });
+// Configurazione di base per le chiamate API - MODIFICA PER AMBIENTE PRODUZIONE
+const API_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:5000' 
+  : 'https://emobial-assessment.onrender.com'; // modifica con l'URL reale del tuo backend
 
+// Funzione di aiuto per le chiamate fetch
+async function fetchWithAuth(endpoint, options = {}) {
+  // ... resto del codice ...
 // Funzione di aiuto per le chiamate fetch
 async function fetchWithAuth(endpoint, options = {}) {
     // In un'app reale, includeremmo un token di autenticazione
