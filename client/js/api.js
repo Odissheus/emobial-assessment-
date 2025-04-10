@@ -607,6 +607,12 @@ function testCorsConfiguration() {
 
 // Avvia il test CORS all'inizializzazione e assicura un paziente valido
 testCorsConfiguration();
-ensureValidPatient().then(patientId => {
-    console.log('[API] Paziente pronto per i test:', patientId);
-});
+ensureValidPatient()
+    .then(patientId => {
+        console.log('[API] Paziente pronto per i test:', patientId);
+    })
+    .catch(error => {
+        console.error('[API] Errore durante la validazione del paziente:', error);
+        // Mostra un messaggio di errore all'utente
+        alert('Si è verificato un errore durante la validazione del paziente. Riprova più tardi.');
+    })};
