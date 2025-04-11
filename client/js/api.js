@@ -2,7 +2,8 @@
 const API_URL = window.location.hostname === 'localhost' 
   ? 'http://localhost:5000' 
   : 'https://emobial-assessment.onrender.com'; // modifica con l'URL reale del tuo backend
-
+// Assicurati che appState esista
+window.appState = window.appState || {};
 // Funzione di aiuto per le chiamate fetch
 async function fetchWithAuth(endpoint, options = {}) {
     // In un'app reale, includeremmo un token di autenticazione
